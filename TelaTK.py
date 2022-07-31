@@ -7,6 +7,7 @@ from tkinter import filedialog as fd
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 #
 # Classe da Interface com Usuário
@@ -15,7 +16,7 @@ class Tela(ttk.Frame):
 
 
     def __init__(self, master):
-
+        super(Tela, self).__init__()
         #
         # ttk.Frame.__init__(self, master)
         self.master = master
@@ -36,26 +37,27 @@ class Tela(ttk.Frame):
         self.caixa1.grid(column=1, row=2)
         self.texto1 = tk.Label(self.caixa1, text='---------Tratamento - Espectros -----------')
         self.texto1.grid(column=2, row=1)
-        #self.texto2 = tk.Label(master, text='----')  # a ser criado - sem extensão')
-        #self.texto2.grid(column=1, row=3)
+        self.texto2 = tk.Label(master, text='----')  # a ser criado - sem extensão')
+        self.texto2.grid(column=1, row=3)
 
         #self.nome = tk.Entry(master)
         #self.nome.grid(column=2, row=3)
 
         self.botaoArquivo = tk.Button(master, text=' Selecionar Arquivo  ', command=self.select_file)
         self.botaoArquivo.grid(column=2, row=6)
-        #self.botaoGrafico = tk.Button(master, text=' Selecionar Arquivo  ', command=self.grafico(familia))
-        #self.botaoGrafico.grid(column=3, row=6)
+        self.botaoGrafico = tk.Button(master, text=' Grafico  ', command=self.grafico_preparo)
+        self.botaoGrafico.grid(column=3, row=6)
         self.botaoSalvar = tk.Button(master, text='   Salvar      ', command=self.salvar_excel)
         self.botaoSalvar.grid(column=4, row=6)
         self.botaoSair = tk.Button(master, text='     Sair    ', command=master.destroy)
         self.botaoSair.grid(column=5, row=20)
 
-       # caixa_grafico = tk.Frame(master, borderwidth=10, relief='ridge')
-       # caixa_grafico.grid(column=0, row=6, padx=10, pady=10)
+        self.caixa_grafico = tk.Frame(master, borderwidth=10, relief='ridge')
+        self.caixa_grafico.grid(column=0, row=6, padx=10, pady=10)
 
-        # canva = FigureCanvasTkAgg(figura, self)
-        # canva.get_tk_widget().grid(column=0, row=6, padx=10, pady=10)
+        figura = Figure(figsize=(6, 4), dpi=100)
+        canva = FigureCanvasTkAgg(figura, self)
+        canva.get_tk_widget().grid(column=0, row=6, padx=10, pady=10)
 
         #self.botaoLeitura = tk.Button(master, text='  Obter Dados   ', command=self.leitura(filename))
         #self.botaoLeitura.grid(column=1, row=6)
@@ -72,16 +74,24 @@ class Tela(ttk.Frame):
         user = os.getlogin()
         filename = fd.askopenfilename(
             title='Open a file',
-            initialdir='C:/Users/%s/Documents' % user,
             filetypes=filetypes
             )
-
         # Split the filepath to get the directory
-        directory = os.path.split(filename)[0]
+        #directory = os.path.split(filename)[0]
         #
         self.leitura(filename)
         return filename
 
+    def diretorio(self):
+        # Allow user to select a directory and store it in global var
+        # called folder_path
+        global folder_path
+        filename = filedialog.askdirectory()
+        folder_path.set(filename)
+        # definir folder_path como diretorio ativo
+        sourcePath = folder_path.get()
+        os.chdir(sourcePath)  # Provide the path here
+        # print(filename)
     def leitura(self,filename):
         global familia
         global directory
@@ -123,9 +133,6 @@ class Tela(ttk.Frame):
         #
 
 
-    #
-    # ------------funções gráfico
-    #
     def grafico(x,y):
         plt.style.use('_mpl-gallery')
         #
@@ -142,29 +149,25 @@ class Tela(ttk.Frame):
         ax.set(xlim=(0, 14), xticks=np.arange(1, 14),
                ylim=(0, 1), yticks=np.arange(0, 1))
         #plt.show()
-    def arredonda (valor):
-        if valor > 0.001:
-            texto ='{:.5f}'.format((valor))
-        else:
-            texto = '{:.5e}'.format((valor))
-        return texto
 
-    def graficos(dados):
-        figura = plt.figure(figsize=(4,4))
-        plt.subplot(211)                # linha, coluna, número do grafico
-        plt.axis([0,14,0,1.05])         #lista [xmin, xmax, ymin, ymax]
-        plt.plot(x,dados)
-        plt.subplot(212)
-        plt.axis([0, 14,min(carga)-.5,max(carga)+.5])  # lista [xmin, xmax, ymin, ymax]
-        plt.plot(x,carga)
+    def graficos(self):
+        global familia
+        print(familia)
+        #fig = plt.figure(figsize=(5, 4))
+        #ax = fig.add_axes([1, 1, 1, 1])
+        #ax.plot(familia[0],familia[1])
+        tamanho=familia.shape[1]
+        for i in range(1,tamanho):
+            plt.plot(familia[0],familia[i])
         #
         #
-        #
-        canva = FigureCanvasTkAgg(figura, caixa_grafico)
-        canva.get_tk_widget().grid(column=0, row=6, padx=10, pady=10)
-        #
-        #plt.show()
+        plt.show()
 
+    def grafico_preparo(self):
+        #
+        # ------------funções gráfico
+        #
+        self.graficos()
 
 # ---------------------------------
 if __name__ == '__main__':
